@@ -47,13 +47,68 @@
         .logo-icon { width: 35px; height: 35px; background: linear-gradient(135deg, #00ff88, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; box-shadow: var(--neon); }
         .wallet-info { display: flex; align-items: center; gap: 8px; }
 
-        .network-select {
-            appearance: none; background: rgba(0, 255, 136, 0.05); border: 1px solid var(--primary);
-            color: var(--primary); padding: 8px 12px; border-radius: 8px; font-weight: 700;
-            outline: none; text-align: center; font-size: 0.9rem; cursor: pointer;
-        }
-        .network-select option { background: #000; color: #fff; }
+      /* 1. Контейнер для позиционирования */
+.network-switcher {
+    position: relative; 
+    display: inline-block;
+}
 
+/* 2. Стиль кнопки сети (внешний вид как у вашей старой select) */
+.network-select {
+    /* ... (оставляем стили как для кнопки DISCONNECT) ... */
+    background: rgba(0, 255, 136, 0.05); 
+    border: 1px solid var(--primary);
+    color: var(--primary); 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    font-weight: 700;
+    outline: none; 
+    text-align: center; /* Центрирование текста на самой кнопке */
+    font-size: 0.9rem; 
+    cursor: pointer;
+    min-width: 100px; /* Фиксируем ширину, чтобы список выглядел аккуратно */
+}
+
+/* 3. Стиль для ВЫПАДАЮЩЕГО СПИСКА */
+.network-dropdown-content {
+    display: none; /* Скрыт по умолчанию */
+    position: absolute;
+    top: 100%; 
+    right: 0; /* Выравниваем список по правому краю кнопки */
+    z-index: 100;
+    min-width: 100%; 
+    margin-top: 5px;
+    background-color: #121212; 
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    overflow: hidden; /* Скрывает границы элементов внутри */
+}
+
+/* 4. Стиль для элементов внутри списка */
+.network-dropdown-content button {
+    /* ЭТО КЛЮЧЕВОЙ МОМЕНТ ДЛЯ ЦЕНТРИРОВАНИЯ ТЕКСТА */
+    text-align: center; 
+    
+    width: 100%;
+    padding: 10px 15px;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.network-dropdown-content button:hover {
+    background-color: rgba(0, 255, 136, 0.1);
+    color: var(--primary);
+}
+
+/* Класс для показа списка через JS */
+.network-dropdown-content.show {
+    display: block; 
+}
         .btn-connect {
             background: transparent; color: var(--primary); border: 2px solid var(--primary);
             padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s;
@@ -241,13 +296,20 @@
     <header>
         <div class="brand"><div class="logo-icon">⚡</div>MyCryptoFinance DEFI</div>
         <div class="wallet-info">
-            <select id="networkSelect" class="network-select" onchange="switchNetwork(this.value)">
-                <option value="" disabled selected>Network</option>
-                <option value="1">ETH</option>
-                <option value="11155111">Sepolia</option>
-                <option value="8453">Base</option>
-                <option value="56">BNB</option>
-            </select>
+            
+            <div class="network-switcher">
+                <button id="networkBtn" class="network-select">
+                    Sepolia
+                </button>
+                
+                <div id="networkDropdown" class="network-dropdown-content">
+                    <button onclick="switchNetworkByValue(11155111, 'Sepolia')">Sepolia</button>
+                    <button onclick="switchNetworkByValue(1, 'ETH')">ETH</button>
+                    <button onclick="switchNetworkByValue(8453, 'Base')">Base</button>
+                    <button onclick="switchNetworkByValue(56, 'BNB')">BNB</button>
+                </div>
+            </div>
+            
             <div id="balanceDisplay" class="badge"></div>
             <button id="connectBtn" class="btn-connect">CONNECT</button>
         </div>
@@ -264,7 +326,7 @@
                     <div class="stat-value" id="priceDisplay">...</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Remaining</div>
+                    <div class="stat-label">Remainder</div>
                     <div class="stat-value" id="soldDisplay">...</div>
                 </div>
             </div>
@@ -717,8 +779,8 @@
         
         document.getElementById('progressText').innerText = `${parseFloat(ethers.utils.formatEther(total)).toLocaleString('ru-RU')} / ${parseFloat(ethers.utils.formatEther(max)).toLocaleString('ru-RU')} SOLD`;
         
-    } catch(e){}
-}
+     } catch(e){}
+    }
 
         async function checkNFTs() {
             if(!nftContract) return;
@@ -752,7 +814,33 @@
         }
         function closeModal() { document.getElementById('txModal').style.display='none'; }
 
+        // Функция, которая показывает/скрывает выпадающий список
+        document.getElementById('networkBtn').addEventListener('click', function() {
+          document.getElementById('networkDropdown').classList.toggle('show');
+        });
+
+        // Закрытие списка, если кликнуть в любом другом месте страницы
+        window.onclick = function(event) {
+         if (!event.target.matches('.network-select')) {
+        const dropdown = document.getElementById('networkDropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+            }
+         }
+        }
+
+        // Новая функция для обработки выбора сети (она заменяет onchange из старого select)
+         function switchNetworkByValue(chainId, chainName) {
+         // 1. Обновляем текст на главной кнопке
+         document.getElementById('networkBtn').innerText = chainName;
+    
+         // 2. Вызываем вашу функцию для смены сети
+         switchNetwork(chainId); 
+    
+         // 3. Скрываем список (выполняется автоматически через window.onclick, но лучше явно)
+         document.getElementById('networkDropdown').classList.remove('show');
+         }
+
     </script>
 </body>
 </html>
-
