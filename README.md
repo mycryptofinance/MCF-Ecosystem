@@ -27,14 +27,22 @@ Sepolia,11155111,ETH.
 BNB Smart Chain Testnet,97,BNB.
 
 Адреса Smart-Контрактов
+
 В проекте используются следующие контракты. При переключении сети DApp автоматически использует соответствующий адрес.
 
+
 MCF Token	Sepolia	0xb66008C221CE3699c7F50AebB07898695845e95f
+
 Staking Contract	Sepolia	0x825FC04C154053d9F1f697cd9522019224343fC9
+
 NFT Contract	Sepolia*	0xda2384357a072818a7c1BC4Bbd79Edf22065c95A
 
+
+
 MCF Token	BNB Testnet	0xB499CDDDdF296e247cCCABAB530cD21a8c36a0aA
+
 Staking Contract BNB Testnet 0x3BFbc2b79A3A1CC6FD6467dFdbE7240Eb7e64ac8
+
 NFT Contract BNB Testnet 0x620bc61e7344103F9e780c617445a28ab92a4ceF
 
 
